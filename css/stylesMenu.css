@@ -1,0 +1,261 @@
+﻿/* Style général */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: cornflowerblue !important;
+    background-image: url("../images/Pattern3.png");
+    background-size: 30%;
+    overflow: auto;
+}
+
+/* Barre de menu */
+.menu-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, #000000, #434343); /* Dégradé noir */
+    padding: 10px 20px;
+    border-bottom: 3px solid orange;
+}
+
+.menu-item, .menu-title, .menu-logo {
+    display: flex;
+    align-items: center;
+}
+
+.menu-button {
+    background-color: #0056ff;
+    color: orange;
+    border: 2px solid orange;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    margin-right: 15px;
+}
+
+.menu-button:hover {
+    background-color: orange;
+    color: black;
+}
+
+.menu-home-icon {
+    font-size: 28px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.menu-icon-mobile {
+    display: none;
+}
+
+.menu-title h1 {
+    color: orange;
+    font-size: 24px;
+    font-family: 'Calibri', sans-serif;
+    margin: 0 20px;
+}
+
+.menu-logo {
+    display: flex;
+    align-items: center;
+    background-color: #0056ff;
+    color: orange;
+    border: 2px solid orange;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.menu-logo .menu-icon {
+    width: 30px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+.menu-logo .menu-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: orange;
+}
+
+/* Section principale */
+.menu-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 40px;
+}
+
+/* Connexion */
+.login-section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.login-box {
+    background: #222;
+    color: #fff;
+    border: 2px solid #fff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 300px;
+}
+
+.login-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 12px;
+    /* L’icône Bootstrap sera blanche grâce à la classe text-white */
+}
+
+.login-title {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 18px;
+    text-align: center;
+}
+
+.login-input {
+    width: 220px;
+    padding: 10px;
+    margin-bottom: 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 10px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+    .login-btn:hover {
+        background: #0056b3;
+    }
+
+/* Événements */
+.events-section {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    max-width: 900px;
+}
+
+.events-box {
+    display: flex;
+    background: #666;
+    color: #fff;
+    border: 2px solid #fff;
+    padding: 25px 35px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    max-width: 900px;
+}
+
+.events-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.events-icon {
+    margin-right: 8px;
+    font-size: 1.3rem;
+}
+
+.events-box ul {
+    padding-left: 18px;
+    margin: 0;
+}
+
+.events-box li {
+    margin-bottom: 7px;
+}
+
+/* Contact */
+.contact-section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.contact-box {
+    background: #666;
+    color: #fff;
+    padding: 18px 28px;
+    border: 2px solid #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    min-width: 220px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.contact-title {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.contact-icon {
+    font-size: 1.2rem;
+}
+
+.contact-mail {
+    font-size: 1rem;
+    color: #007bff;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+    .menu-bar {
+        /*flex-direction: column;*/
+        padding: 10px 10px;
+    }
+
+    .menu-title h1 {
+        font-size: 1.3rem;
+    }
+
+    .menu-logo .menu-icon {
+        width: 30px;
+        height: 30px;
+    }
+
+    .menu-logo .menu-text {
+        font-size: 1.1rem;
+    }
+
+    .login-box, .events-box, .contact-box {
+        min-width: 180px;
+        padding: 18px 10px;
+    }
+
+    .login-input {
+        width: 140px;
+    }
+}
