@@ -230,6 +230,20 @@ body {
     color: #007bff;
 }
 
+.nav-login-badge {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: #0056ff; /* badge background color */
+    color: orange; /* text color */
+    padding: 6px 10px;
+    border-radius: 6px;
+    z-index: 1050;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    font-size: 0.95rem;
+}
+.nav-login-badge a { color: #fff; text-decoration: underline; margin-left:8px; }
+
 /* Responsive */
 @media (max-width: 700px) {
     .menu-bar {
