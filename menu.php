@@ -162,43 +162,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th><span class="events-icon">&#128197;</span> Événements</th>
+                                <th>Titre</th>
+                                <th>Description</th>
+                                <th>Date de début</th>
+                                <th>Date de fin</th>
+                                <th>Nombre de joueurs</th>
+                                <th>Organisateur</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>Tournoi Fortnite - 01/03/2025 de 10:00 à 12:00</td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>Tournoi League of Legend - 01/03/2025 de 10:00 à 12:00</td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>Tournoi Counter-Strike - 02/03/2025 de 10:00 à 12:00</td>
-                            </tr>
-                            <tr>
-                                <td>4</td>
-                                <td>Tournoi Valorant - 02/03/2025 de 10:00 à 12:00</td>
-                            </tr>
-                            <tr>
-                                <td>5</td>
-                                <td>Tournoi Overwatch 2 - 08/03/2025 de 10:00 à 16:00</td>
-                            </tr>
-                            <tr>
-                                <td>6</td>
-                                <td>Tournoi Rocket League - 08/03/2025 de 14:00 à 16:00</td>
-                            </tr>
-                            <tr>
-                                <td>7</td>
-                                <td>Tournoi Call of Duty - 09/03/2025 de 10:00 à 12:00</td>
-                            </tr>
-                            <tr>
-                                <td>8</td>
-                                <td>Tournoi Rainbow Six - 09/03/2025 de 14:00 à 16:00</td>
-                            </tr>
+                        <?php
+                        // Récupère les événements visibles et le nom de l'organisateur
+                        $sql = "SELECT e.id, e.titre, e.description, e.date_debut, e.date_fin, e.nb_joueurs, u.username AS organisateur
+                                FROM evenements e
+                                LEFT JOIN utilisateurs u ON e.organisateur_id = u.id
+                                WHERE e.visibilite = 'visible'
+                                ORDER BY e.date_debut ASC";
+
+                        if ($res = $mysqli->query($sql)) {
+                            if ($res->num_rows > 0) {
+                                while ($ev = $res->fetch_assoc()) {
+                                    $start = $ev['date_debut'] ? date('d/m/Y H:i', strtotime($ev['date_debut'])) : '';
+                                    $end = $ev['date_fin'] ? date('d/m/Y H:i', strtotime($ev['date_fin'])) : '';
+                                    echo '<tr>';
+                                    echo '<td>' . htmlspecialchars($ev['id']) . '</td>';
+                                    echo '<td>' . htmlspecialchars($ev['titre']) . '</td>';
+                                    echo '<td>' . htmlspecialchars($ev['description']) . '</td>';
+                                    echo '<td>' . htmlspecialchars($start) . '</td>';
+                                    echo '<td>' . htmlspecialchars($end) . '</td>';
+                                    echo '<td>' . htmlspecialchars($ev['nb_joueurs']) . '</td>';
+                                    echo '<td>' . htmlspecialchars($ev['organisateur'] ?? '') . '</td>';
+                                    echo '</tr>';
+                                }
+                                $res->free();
+                            } else {
+                                echo '<tr><td colspan="7">Aucun événement trouvé.</td></tr>';
+                            }
+                        } else {
+                            echo '<tr><td colspan="7">Erreur lors de la lecture des événements.</td></tr>';
+                        }
+                        ?>
                         </tbody>
                     </table>
                

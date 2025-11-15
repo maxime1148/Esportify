@@ -1,5 +1,53 @@
-﻿<!DOCTYPE html>
-<html> 
+﻿<?php
+$host = '127.0.0.1';
+$db = 'esportify_sql';
+$dbuser = 'root';
+$dbpass = '';
+
+$mysqli = new mysqli($host, $dbuser, $dbpass, $db);
+$db_error = '';
+if ($mysqli->connect_errno) {
+    $db_error = 'Erreur de connexion à la base de données: ' . $mysqli->connect_error;
+}
+
+$now = date('Y-m-d H:i:s');
+
+// Événements en cours: date_debut <= now <= date_fin
+$ongoing = null;
+if (!$db_error) {
+    $stmt = $mysqli->prepare("SELECT e.id, e.titre, e.description, e.date_debut, e.date_fin, e.nb_joueurs, u.username AS organisateur
+        FROM evenements e
+        LEFT JOIN utilisateurs u ON e.organisateur_id = u.id
+        WHERE e.visibilite = 'visible' AND e.date_debut <= ? AND e.date_fin >= ?
+        ORDER BY e.date_debut ASC");
+    if ($stmt) {
+        $stmt->bind_param('ss', $now, $now);
+        $stmt->execute();
+        $ongoing = $stmt->get_result();
+        $stmt->close();
+    }
+
+    // Événements à venir: date_debut > now
+    $upcoming = null;
+    $stmt2 = $mysqli->prepare("SELECT e.id, e.titre, e.description, e.date_debut, e.date_fin, e.nb_joueurs, u.username AS organisateur
+        FROM evenements e
+        LEFT JOIN utilisateurs u ON e.organisateur_id = u.id
+        WHERE e.visibilite = 'visible' AND e.date_debut > ?
+        ORDER BY e.date_debut ASC");
+    if ($stmt2) {
+        $stmt2->bind_param('s', $now);
+        $stmt2->execute();
+        $upcoming = $stmt2->get_result();
+        $stmt2->close();
+    }
+} else {
+    $ongoing = null;
+    $upcoming = null;
+}
+?>
+
+<!DOCTYPE html>
+<html>
 <head>
     <meta charset="utf-8" />
     <title>Esportify - Accueil</title>
@@ -66,62 +114,73 @@
 
                 <!-- Section "événements en cours" et "événements à venir" -->
                 <div class="row">
-                    <table class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th><span class="events-icon">&#128197;</span> Événements en cours</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>Tournoi Fortnite - 01/03/2025 de 10:00 à 12:00</td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>Tournoi League of Legend - 01/03/2025 de 10:00 à 12:00</td>
-                            </tr>
-                        </tbody>
-
-                    </table>
-                
-                </div>  
-                <div class="row">
+                    <p class="current-events"><span class="events-icon">&#128197;</span> Événements en cours</p>
+                    <?php if ($ongoing && $ongoing->num_rows > 0): ?>
                         <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th><span class="events-icon">&#128197;</span> Événements à venir</th>
+                                    <th>Titre</th>
+                                    <th>Description</th>
+                                    <th>Date de début</th>
+                                    <th>Date de fin</th>
+                                    <th>Nombre de joueurs</th>
+                                    <th>Organisateur</th>
                                 </tr>
                             </thead>
                             <tbody>
+                            <?php while ($ev = $ongoing->fetch_assoc()):
+                                $start = $ev['date_debut'] ? date('d/m/Y H:i', strtotime($ev['date_debut'])) : '';
+                                $end = $ev['date_fin'] ? date('d/m/Y H:i', strtotime($ev['date_fin'])) : '';
+                            ?>
                                 <tr>
-                                    <td>1</td>
-                                    <td>Tournoi Counter-Strike - 02/03/2025 de 10:00 à 12:00</td>
+                                    <td><?php echo htmlspecialchars($ev['id']); ?></td>
+                                    <td><?php echo htmlspecialchars($ev['titre']); ?></td>
+                                    <td><?php echo htmlspecialchars($ev['description']); ?></td>
+                                    <td><?php echo htmlspecialchars($start); ?></td>
+                                    <td><?php echo htmlspecialchars($end); ?></td>
+                                    <td><?php echo htmlspecialchars($ev['nb_joueurs']); ?></td>
+                                    <td><?php echo htmlspecialchars($ev['organisateur'] ?? ''); ?></td>
                                 </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>Tournoi Valorant - 02/03/2025 de 10:00 à 12:00</td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>Tournoi Overwatch 2 - 08/03/2025 de 10:00 à 16:00</td>
-                                </tr>
-                                <tr>
-                                    <td>4</td>
-                                    <td>Tournoi Rocket League - 08/03/2025 de 14:00 à 16:00</td>
-                                </tr>
-                                <tr>
-                                    <td>5</td>
-                                    <td>Tournoi Call of Duty - 09/03/2025 de 10:00 à 12:00</td>
-                                </tr>
-                                <tr>
-                                    <td>6</td>
-                                    <td>Tournoi Rainbow Six - 09/03/2025 de 14:00 à 16:00</td>
-                                </tr>
+                            <?php endwhile; ?>
                             </tbody>
                         </table>
+                    <?php endif; ?>
+                
+                </div>
+                <div class="row">
+                        <p class="upcoming-events"><span class="events-icon">&#128197;</span> Événements à venir</p>
+                        <?php if ($upcoming && $upcoming->num_rows > 0): ?>
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Titre</th>
+                                <th>Description</th>
+                                <th>Date de début</th>
+                                <th>Date de fin</th>
+                                <th>Nombre de joueurs</th>
+                                <th>Organisateur</th>
+                            </tr>
+                        </thead>
+                            <tbody>
+                            <?php while ($ev = $upcoming->fetch_assoc()):
+                                $start = $ev['date_debut'] ? date('d/m/Y H:i', strtotime($ev['date_debut'])) : '';
+                                $end = $ev['date_fin'] ? date('d/m/Y H:i', strtotime($ev['date_fin'])) : '';
+                            ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($ev['id']); ?></td>
+                                    <td><?php echo htmlspecialchars($ev['titre']); ?></td>
+                                    <td><?php echo htmlspecialchars($ev['description']); ?></td>
+                                    <td><?php echo htmlspecialchars($start); ?></td>
+                                    <td><?php echo htmlspecialchars($end); ?></td>
+                                    <td><?php echo htmlspecialchars($ev['nb_joueurs']); ?></td>
+                                    <td><?php echo htmlspecialchars($ev['organisateur'] ?? ''); ?></td>
+                                </tr>
+                            <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                        <?php endif; ?>
                 </div>
             </section>
 

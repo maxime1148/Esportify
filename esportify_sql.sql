@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : sam. 15 nov. 2025 à 09:49
+-- Généré le : sam. 15 nov. 2025 à 15:58
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -43,7 +43,16 @@ CREATE TABLE `evenements` (
 --
 
 INSERT INTO `evenements` (`id`, `titre`, `description`, `date_debut`, `date_fin`, `visibilite`, `nb_joueurs`, `organisateur_id`) VALUES
-(1, 'Tournoi Fortnite', 'Demi-finale du Tournoi Fortnite', '2025-11-15 09:15:18', '2025-11-15 09:15:18', 'visible', 4, 1);
+(1, 'Tournoi Fortnite', 'Demi-finale du Tournoi Fortnite', '2026-01-10 09:00:00', '2026-01-10 10:00:00', 'visible', 4, 1),
+(2, 'Tournoi League of Legend', 'Tournoi départemental League of Legend', '2026-01-17 14:00:00', '2026-01-17 15:00:00', 'visible', 8, 1),
+(3, 'Tournoi Counter-Strike', 'Finale du tournoi Counter-Strike', '2026-01-24 09:00:00', '2026-01-24 10:00:00', 'visible', 2, 1),
+(4, 'Tournoi Fortnite', 'Compétition amicale de Fortnite avec des prix pour les meilleurs joueurs.', '2026-01-31 14:00:00', '2026-01-31 15:00:00', 'visible', 16, 1),
+(5, 'Tournoi Counter-Strike', 'Compétition amicale de Counter-Strike avec des prix pour les meilleurs joueurs.', '2026-02-07 09:00:00', '2026-02-07 10:00:00', 'visible', 16, 1),
+(6, 'Tournoi Valorant', 'Compétition amicale de Valorant avec des prix pour les meilleurs joueurs.', '2026-02-14 14:00:00', '2026-02-14 15:00:00', 'visible', 16, 1),
+(7, 'Tournoi Overwatch 2', 'Compétition amicale de Overwatch 2 avec des prix pour les meilleurs joueurs.', '2026-02-21 09:00:00', '2026-02-21 10:00:00', 'visible', 16, 1),
+(8, 'Tournoi Rocket League', 'Compétition amicale de Rocket League avec des prix pour les meilleurs joueurs.', '2026-02-28 14:00:00', '2026-02-28 15:00:00', 'visible', 16, 1),
+(9, 'Tournoi Call of Duty', 'Compétition amicale de Call of Duty avec des prix pour les meilleurs joueurs.', '2026-03-07 09:00:00', '2026-03-07 10:00:00', 'visible', 16, 1),
+(10, 'Tournoi Rainbow Six', 'Compétition amicale de Rainbow Six avec des prix pour les meilleurs joueurs.', '2026-03-14 14:00:00', '2026-03-14 15:00:00', 'visible', 16, 1);
 
 -- --------------------------------------------------------
 
@@ -88,9 +97,7 @@ INSERT INTO `utilisateurs` (`id`, `username`, `password`, `role`, `status`) VALU
 --
 ALTER TABLE `evenements`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `organisateur_id_3` (`organisateur_id`),
-  ADD KEY `organisateur_id` (`organisateur_id`),
-  ADD KEY `organisateur_id_2` (`organisateur_id`);
+  ADD KEY `organisateur_id` (`organisateur_id`);
 
 --
 -- Index pour la table `participants`
@@ -113,7 +120,7 @@ ALTER TABLE `utilisateurs`
 -- AUTO_INCREMENT pour la table `evenements`
 --
 ALTER TABLE `evenements`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT pour la table `utilisateurs`

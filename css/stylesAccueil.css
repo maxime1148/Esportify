@@ -195,7 +195,8 @@ main {
 /* Section "Événements" */
 .events {
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
+    
     flex-wrap: wrap;
     gap: 20px;
 }
@@ -204,11 +205,11 @@ main {
     background-color: #4a4a4a;
     color: white;
     padding: 20px;
-    margin: auto;
+    margin: 10px 10px;
     border-radius: 10px;
     border: 2px solid white;
-    max-width: 900px;
-    flex: 1;
+    max-width: 300px;
+    
 }
 
     .current-events h2, .upcoming-events h2 {
