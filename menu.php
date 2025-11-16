@@ -28,51 +28,117 @@ if (isset($_GET['logout'])) {
 }
 
 $message = '';
-// Login handler
+$reg_message = '';
+
+// Form handling: distinguer login vs register via champ hidden 'action'
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+    $action = $_POST['action'] ?? 'login';
 
-    if ($username === '' || $password === '') {
-        $message = 'Veuillez remplir tous les champs.';
-    } else {
-        if ($mysqli) {
-            $stmt = $mysqli->prepare('SELECT id, username, password, role FROM utilisateurs WHERE username = ? LIMIT 1');
-            if ($stmt) {
-                $stmt->bind_param('s', $username);
-                $stmt->execute();
-                $res = $stmt->get_result();
-                if ($row = $res->fetch_assoc()) {
-                    // NOTE: passwords in the provided SQL are stored in plain text.
-                    // For production you should use password_hash() and password_verify().
-                    if ($password === $row['password']) {
-                        $_SESSION['user_id'] = $row['id'];
-                        $_SESSION['username'] = $row['username'];
-                        $_SESSION['role'] = $row['role'];
+    if ($action === 'register') {
+        // Inscription
+        $reg_username = trim($_POST['reg_username'] ?? '');
+        $reg_password = trim($_POST['reg_password'] ?? '');
+        $reg_password_confirm = trim($_POST['reg_password_confirm'] ?? '');
 
-                        $uid = $row['id'];
-                        $up = $mysqli->prepare("UPDATE utilisateurs SET status='connected' WHERE id=?");
-                        if ($up) {
-                            $up->bind_param('i', $uid);
-                            $up->execute();
-                            $up->close();
-                        }
-
-                        // Redirect to avoid form resubmission
-                        header('Location: menu.php');
-                        exit;
+        if ($reg_username === '' || $reg_password === '' || $reg_password_confirm === '') {
+            $reg_message = 'Veuillez remplir tous les champs d\'inscription.';
+        } elseif ($reg_password !== $reg_password_confirm) {
+            $reg_message = 'Les mots de passe ne correspondent pas.';
+        } else {
+            if ($mysqli) {
+                // Vérifier que le nom d'utilisateur n'existe pas
+                $check = $mysqli->prepare('SELECT id FROM utilisateurs WHERE username = ? LIMIT 1');
+                if ($check) {
+                    $check->bind_param('s', $reg_username);
+                    $check->execute();
+                    $res = $check->get_result();
+                    if ($res && $res->fetch_assoc()) {
+                        $reg_message = 'Ce nom d\'utilisateur est déjà pris.';
+                        $check->close();
                     } else {
-                        $message = 'Mot de passe incorrect.';
+                        $check->close();
+                        // NOTE: la base existante stocke les mots de passe en clair.
+                        // Pour rester compatible avec le système de login actuel,
+                        // nous stockons ici le mot de passe tel quel. En production,
+                        // utilisez password_hash() ici et password_verify() au login.
+
+                        $role = 'joueur';
+                        $status = 'connected';
+                        $ins = $mysqli->prepare('INSERT INTO utilisateurs (username, password, role, status) VALUES (?, ?, ?, ?)');
+                        if ($ins) {
+                            $ins->bind_param('ssss', $reg_username, $reg_password, $role, $status);
+                            if ($ins->execute()) {
+                                // Auto-login
+                                $newId = $mysqli->insert_id;
+                                $_SESSION['user_id'] = $newId;
+                                $_SESSION['username'] = $reg_username;
+                                $_SESSION['role'] = $role;
+
+                                // Redirect pour éviter resoumission
+                                header('Location: menu.php');
+                                exit;
+                            } else {
+                                $reg_message = 'Erreur lors de la création du compte.';
+                            }
+                            $ins->close();
+                        } else {
+                            $reg_message = 'Erreur interne (préparation de l\'insertion).';
+                        }
                     }
                 } else {
-                    $message = 'Utilisateur non trouvé.';
+                    $reg_message = 'Erreur interne (préparation de la vérification).';
                 }
-                $stmt->close();
             } else {
-                $message = 'Erreur interne (préparation de la requête).';
+                $reg_message = 'Connexion à la base de données impossible.';
             }
+        }
+
+    } else {
+        // Login
+        $username = trim($_POST['username'] ?? '');
+        $password = trim($_POST['password'] ?? '');
+
+        if ($username === '' || $password === '') {
+            $message = 'Veuillez remplir tous les champs.';
         } else {
-            $message = 'Connexion à la base de données impossible.';
+            if ($mysqli) {
+                $stmt = $mysqli->prepare('SELECT id, username, password, role FROM utilisateurs WHERE username = ? LIMIT 1');
+                if ($stmt) {
+                    $stmt->bind_param('s', $username);
+                    $stmt->execute();
+                    $res = $stmt->get_result();
+                    if ($row = $res->fetch_assoc()) {
+                        // NOTE: passwords in the provided SQL are stored in plain text.
+                        // For production you should use password_hash() and password_verify().
+                        if ($password === $row['password']) {
+                            $_SESSION['user_id'] = $row['id'];
+                            $_SESSION['username'] = $row['username'];
+                            $_SESSION['role'] = $row['role'];
+
+                            $uid = $row['id'];
+                            $up = $mysqli->prepare("UPDATE utilisateurs SET status='connected' WHERE id=?");
+                            if ($up) {
+                                $up->bind_param('i', $uid);
+                                $up->execute();
+                                $up->close();
+                            }
+
+                            // Redirect to avoid form resubmission
+                            header('Location: menu.php');
+                            exit;
+                        } else {
+                            $message = 'Mot de passe incorrect.';
+                        }
+                    } else {
+                        $message = 'Utilisateur non trouvé.';
+                    }
+                    $stmt->close();
+                } else {
+                    $message = 'Erreur interne (préparation de la requête).';
+                }
+            } else {
+                $message = 'Connexion à la base de données impossible.';
+            }
         }
     }
 }
@@ -137,39 +203,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </nav>
                 </div>
             </div>
-            
         </section>
+        <br>
 
         <section id="contenu">
-            <div class="menu-main login-section" style="<?php echo empty(
-                
-                $_SESSION['username']) ? 'display:flex;' : 'display:none;'; ?>" id="login-connexion">
-                <div class="row login-box">
-                    <!-- Icône Bootstrap blanche au-dessus du titre -->
-                    <div class="login-icon mb-2">
-                        <i class="bi bi-person-circle text-white" style="font-size: 2.5rem;"></i>
-                    </div>
-                    <div class="login-title">Connexion</div>
-                    <form method="post" action="menu.php">
-                        <div class="row">
-                            <input type="text" name="username" placeholder="Nom d'utilisateur" class="login-input" />
+                       
+                <div class="col-6 menu-main login-section" style="<?php echo empty(
+                    
+                    $_SESSION['username']) ? 'display:flex;' : 'display:none;'; ?>" id="login-connexion">
+                    <div class="login-box">
+                        
+                        <!-- Icône Bootstrap blanche au-dessus du titre -->
+                        <div class="login-icon mb-2">
+                            <i class="bi bi-person-circle text-white" style="font-size: 2.5rem;"></i>
                         </div>
-                        <div class="row">
-                            <input type="password" name="password" placeholder="Mot de passe" class="login-input" />
-                        </div>
-                        <div class="row">
-                            <button type="submit" class="login-btn">Se connecter</button>
-                        </div>
-                    </form>
-                    <?php if (!empty($message)): ?>
-                        <div class="row mt-2">
-                            <div class="alert alert-info" role="alert"><?php echo htmlspecialchars($message); ?></div>
-                        </div>
-                    <?php endif; ?>
+                        <div class="login-title">Connexion</div>
+                        <form method="post" action="menu.php">
+                            <input type="hidden" name="action" value="login" />
+                            <div class="row">
+                                <input type="text" name="username" placeholder="Nom d'utilisateur" class="login-input" />
+                            </div>
+                            <div class="row">
+                                <input type="password" name="password" placeholder="Mot de passe" class="login-input" />
+                            </div>
+                            <div class="row">
+                                <button type="submit" class="login-btn">Se connecter</button>
+                            </div>
+                        </form>
+                        <?php if (!empty($message)): ?>
+                            <div class="row mt-2">
+                                <div class="alert alert-info" role="alert"><?php echo htmlspecialchars($message); ?></div>
+                            </div>
+                        <?php endif; ?>
 
-                    <!-- login status shown in the navigation bar -->
+                        <!-- login status shown in the navigation bar -->
+                    
+                        
+                    </div>
                 </div>
-            </div>
+                <div class="col-6 menu-main login-section" style="<?php echo empty(
+                    
+                    $_SESSION['username']) ? 'display:flex;' : 'display:none;'; ?>" id="login-inscription">
+                    <div class="login-box">
+                        
+                        <!-- Icône Bootstrap blanche au-dessus du titre -->
+                        <div class="login-icon mb-2">
+                            <i class="bi bi-person-circle text-white" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <div class="login-title">Inscription</div>
+                        <form method="post" action="menu.php">
+                            <input type="hidden" name="action" value="register" />
+                            <div class="row">
+                                <input type="text" name="reg_username" placeholder="Nom d'utilisateur" class="login-input" />
+                            </div>
+                            <div class="row">
+                                <input type="password" name="reg_password" placeholder="Mot de passe" class="login-input" />
+                            </div>
+                            <div class="row">
+                                <input type="password" name="reg_password_confirm" placeholder="Confirmer le mot de passe" class="login-input" />
+                            </div>
+                            <div class="row">
+                                <button type="submit" class="login-btn">S'inscrire</button>
+                            </div>
+                        </form>
+                        <?php if (!empty($reg_message)): ?>
+                            <div class="row mt-2">
+                                <div class="alert alert-info" role="alert"><?php echo htmlspecialchars($reg_message); ?></div>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- login status shown in the navigation bar -->
+                    
+                        
+                    </div>
+                </div>
+
+                
             <div class="row">
                 
                 <a class="events-access-box" href="evenements.php"><span>&#128197; Accès aux événements</span></a>

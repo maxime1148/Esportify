@@ -300,9 +300,9 @@ body {
 }
 
 .nav-login-badge {
-    position: absolute;
-    top: 8px;
-    right: 12px;
+    max-width: 220px;
+    position:relative;
+    margin: -64px auto 0px auto;
     background: #0056ff; /* badge background color */
     color: orange; /* text color */
     padding: 6px 10px;

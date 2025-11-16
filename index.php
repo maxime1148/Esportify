@@ -1,4 +1,5 @@
 ﻿<?php
+session_start();
 $host = '127.0.0.1';
 $db = 'esportify_sql';
 $dbuser = 'root';
@@ -11,39 +12,100 @@ if ($mysqli->connect_errno) {
 }
 
 $now = date('Y-m-d H:i:s');
+$events = [];
+$currentEvents = [];
+$upcomingEvents = [];
 
-// Événements en cours: date_debut <= now <= date_fin
-$ongoing = null;
-if (!$db_error) {
-    $stmt = $mysqli->prepare("SELECT e.id, e.titre, e.description, e.date_debut, e.date_fin, e.nb_joueurs, u.username AS organisateur
-        FROM evenements e
-        LEFT JOIN utilisateurs u ON e.organisateur_id = u.id
-        WHERE e.visibilite = 'visible' AND e.date_debut <= ? AND e.date_fin >= ?
-        ORDER BY e.date_debut ASC");
-    if ($stmt) {
-        $stmt->bind_param('ss', $now, $now);
-        $stmt->execute();
-        $ongoing = $stmt->get_result();
-        $stmt->close();
+// helper: convert various date formats (MongoDB UTCDateTime, string, DateTime) to PHP DateTime or null
+$toDateTime = function ($val) {
+    if (class_exists('MongoDB\\BSON\\UTCDateTime') && $val instanceof MongoDB\BSON\UTCDateTime) {
+        return $val->toDateTime();
     }
+    if ($val instanceof DateTime) {
+        return $val;
+    }
+    if (is_string($val) && strtotime($val) !== false) {
+        try {
+            return new DateTime($val);
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+    return null;
+};
 
-    // Événements à venir: date_debut > now
-    $upcoming = null;
-    $stmt2 = $mysqli->prepare("SELECT e.id, e.titre, e.description, e.date_debut, e.date_fin, e.nb_joueurs, u.username AS organisateur
-        FROM evenements e
-        LEFT JOIN utilisateurs u ON e.organisateur_id = u.id
-        WHERE e.visibilite = 'visible' AND e.date_debut > ?
-        ORDER BY e.date_debut ASC");
-    if ($stmt2) {
-        $stmt2->bind_param('s', $now);
-        $stmt2->execute();
-        $upcoming = $stmt2->get_result();
-        $stmt2->close();
+// helper pour formater les dates (supporte BSON UTCDateTime si présent)
+$formatDate = function ($val) {
+    if (class_exists('MongoDB\\BSON\\UTCDateTime') && $val instanceof MongoDB\BSON\UTCDateTime) {
+        return $val->toDateTime()->format('d/m/Y H:i');
+    }
+    if (is_string($val) && strtotime($val) !== false) {
+        return date('d/m/Y H:i', strtotime($val));
+    }
+    if ($val instanceof DateTime) {
+        return $val->format('d/m/Y H:i');
+    }
+    return (string) $val;
+};
+$mongodbAvailable = class_exists('MongoDB\\Driver\\Manager');
+
+if ($mongodbAvailable) {
+    try {
+        // Utilisation du driver bas-niveau MongoDB\Driver\Manager
+        $manager = new MongoDB\Driver\Manager('mongodb://127.0.0.1:27017');
+        $filter = [];
+        $options = ['sort' => ['date_debut' => 1]]; // tri par date_debut asc
+        $query = new MongoDB\Driver\Query($filter, $options);
+        $namespace = 'esportifyMongoDB.evenements';
+        $cursor = $manager->executeQuery($namespace, $query);
+        foreach ($cursor as $doc) {
+            $events[] = $doc;
+        }
+        // Séparer les événements en "en cours" et "à venir" selon les dates
+        $nowDateTime = new DateTime('now');
+        if (count($events) > 0) {
+            foreach ($events as $eDoc) {
+                $eArr = is_object($eDoc) ? (array) $eDoc : $eDoc;
+                $startDT = isset($eArr['date_debut']) ? $toDateTime($eArr['date_debut']) : null;
+                $endDT = isset($eArr['date_fin']) ? $toDateTime($eArr['date_fin']) : null;
+
+                if ($startDT instanceof DateTime && $endDT instanceof DateTime) {
+                    if ($startDT->getTimestamp() <= $nowDateTime->getTimestamp() && $nowDateTime->getTimestamp() <= $endDT->getTimestamp()) {
+                        $currentEvents[] = $eDoc;
+                        continue;
+                    }
+                    if ($startDT->getTimestamp() > $nowDateTime->getTimestamp()) {
+                        $upcomingEvents[] = $eDoc;
+                        continue;
+                    }
+                } elseif ($startDT instanceof DateTime) {
+                    if ($startDT->getTimestamp() <= $nowDateTime->getTimestamp()) {
+                        $currentEvents[] = $eDoc;
+                        continue;
+                    }
+                    $upcomingEvents[] = $eDoc;
+                    continue;
+                } else {
+                    // Pas de date valide : considérer comme à venir
+                    $upcomingEvents[] = $eDoc;
+                    continue;
+                }
+            }
+        }
+    } catch (MongoDB\Driver\Exception\Exception $e) {
+        $events = [];
+        error_log('MongoDB Driver error: ' . $e->getMessage());
+    } catch (Exception $e) {
+        $events = [];
+        error_log('General error while reading MongoDB: ' . $e->getMessage());
     }
 } else {
-    $ongoing = null;
-    $upcoming = null;
+    session_destroy();
+    header('Location: menu.php');
+    exit;
 }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -80,7 +142,7 @@ if (!$db_error) {
                     <br>
                     <div class="row">
                         <nav class="row" style="position:relative;">
-                            <div class="col-6 menu-item">
+                            <div class="col-12 menu-item">
                                 <a href="menu.php" class="home-button">
                                     <span class="menu-home-icon"><i class="bi bi-house-door-fill"></i></span> Menu
                                 </a>
@@ -132,72 +194,110 @@ if (!$db_error) {
                 <!-- Section "événements en cours" et "événements à venir" -->
                 <div class="row">
                     <p class="current-events"><span class="events-icon">&#128197;</span> Événements en cours :</p>
-                    <?php if ($ongoing && $ongoing->num_rows > 0): ?>
                         <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
                                     <th>#</th>
                                     <th>Titre</th>
-                                    <th>Description</th>
                                     <th>Date de début</th>
                                     <th>Date de fin</th>
                                     <th>Nombre de joueurs</th>
-                                    <th>Organisateur</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                            <?php while ($ev = $ongoing->fetch_assoc()):
-                                $start = $ev['date_debut'] ? date('d/m/Y H:i', strtotime($ev['date_debut'])) : '';
-                                $end = $ev['date_fin'] ? date('d/m/Y H:i', strtotime($ev['date_fin'])) : '';
-                            ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($ev['id']); ?></td>
-                                    <td><?php echo htmlspecialchars($ev['titre']); ?></td>
-                                    <td><?php echo htmlspecialchars($ev['description']); ?></td>
-                                    <td><?php echo htmlspecialchars($start); ?></td>
-                                    <td><?php echo htmlspecialchars($end); ?></td>
-                                    <td><?php echo htmlspecialchars($ev['nb_joueurs']); ?></td>
-                                    <td><?php echo htmlspecialchars($ev['organisateur'] ?? ''); ?></td>
-                                </tr>
-                            <?php endwhile; ?>
+                                <?php
+                                // Afficher les événements en cours
+                                if (!isset($currentEvents) || !is_array($currentEvents)) {
+                                    $currentEvents = [];
+                                }
+
+                                if (count($currentEvents) > 0) {
+                                    foreach ($currentEvents as $ev) {
+                                        if (is_object($ev)) {
+                                            $ev = (array) $ev;
+                                        }
+
+                                        $event_id = $ev['event_id'] ?? ($ev['_id'] ?? '');
+                                        if (is_object($event_id) && method_exists($event_id, '__toString')) {
+                                            $event_id = (string) $event_id;
+                                        }
+
+                                        $titre = $ev['titre'] ?? '';
+                                        $start = isset($ev['date_debut']) ? $formatDate($ev['date_debut']) : '';
+                                        $end = isset($ev['date_fin']) ? $formatDate($ev['date_fin']) : '';
+                                        $nb = $ev['nb_joueurs'] ?? '';
+
+                                        echo '<tr>';
+                                        echo '<td>' . htmlspecialchars($event_id) . '</td>';
+                                        echo '<td>' . htmlspecialchars($titre) . '</td>';
+                                        echo '<td>' . htmlspecialchars($start) . '</td>';
+                                        echo '<td>' . htmlspecialchars($end) . '</td>';
+                                        echo '<td>' . htmlspecialchars($nb) . '</td>';
+                                        echo '<td>' . '</td>';
+                                        echo '</tr>';
+                                    }
+                                } else {
+                                    echo '<tr><td colspan="6">Aucun événement en cours.</td></tr>';
+                                }
+                                ?>
                             </tbody>
                         </table>
-                    <?php endif; ?>
+                 
                 
                 </div>
                 <div class="row">
                         <p class="upcoming-events"><span class="events-icon">&#128197;</span> Événements à venir :</p>
-                        <?php if ($upcoming && $upcoming->num_rows > 0): ?>
                         <table class="table table-bordered table-striped">
                             <thead>
                             <tr>
                                 <th>#</th>
                                 <th>Titre</th>
-                                <th>Description</th>
                                 <th>Date de début</th>
                                 <th>Date de fin</th>
                                 <th>Nombre de joueurs</th>
-                                <th>Organisateur</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                             <tbody>
-                            <?php while ($ev = $upcoming->fetch_assoc()):
-                                $start = $ev['date_debut'] ? date('d/m/Y H:i', strtotime($ev['date_debut'])) : '';
-                                $end = $ev['date_fin'] ? date('d/m/Y H:i', strtotime($ev['date_fin'])) : '';
-                            ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($ev['id']); ?></td>
-                                    <td><?php echo htmlspecialchars($ev['titre']); ?></td>
-                                    <td><?php echo htmlspecialchars($ev['description']); ?></td>
-                                    <td><?php echo htmlspecialchars($start); ?></td>
-                                    <td><?php echo htmlspecialchars($end); ?></td>
-                                    <td><?php echo htmlspecialchars($ev['nb_joueurs']); ?></td>
-                                    <td><?php echo htmlspecialchars($ev['organisateur'] ?? ''); ?></td>
-                                </tr>
-                            <?php endwhile; ?>
+                               <?php
+                                // Afficher les événements à venir
+                                if (!isset($upcomingEvents) || !is_array($upcomingEvents)) {
+                                    $upcomingEvents = [];
+                                }
+
+                                if (count($upcomingEvents) > 0) {
+                                    foreach ($upcomingEvents as $ev) {
+                                        if (is_object($ev)) {
+                                            $ev = (array) $ev;
+                                        }
+
+                                        $event_id = $ev['event_id'] ?? ($ev['_id'] ?? '');
+                                        if (is_object($event_id) && method_exists($event_id, '__toString')) {
+                                            $event_id = (string) $event_id;
+                                        }
+
+                                        $titre = $ev['titre'] ?? '';
+                                        $start = isset($ev['date_debut']) ? $formatDate($ev['date_debut']) : '';
+                                        $end = isset($ev['date_fin']) ? $formatDate($ev['date_fin']) : '';
+                                        $nb = $ev['nb_joueurs'] ?? '';
+
+                                        echo '<tr>';
+                                        echo '<td>' . htmlspecialchars($event_id) . '</td>';
+                                        echo '<td>' . htmlspecialchars($titre) . '</td>';
+                                        echo '<td>' . htmlspecialchars($start) . '</td>';
+                                        echo '<td>' . htmlspecialchars($end) . '</td>';
+                                        echo '<td>' . htmlspecialchars($nb) . '</td>';
+                                        echo '<td>' . '</td>';
+                                        echo '</tr>';
+                                    }
+                                } else {
+                                    echo '<tr><td colspan="6">Aucun événement à venir.</td></tr>';
+                                }
+                                ?>
                             </tbody>
                         </table>
-                        <?php endif; ?>
+                      
                 </div>
             </section>
 

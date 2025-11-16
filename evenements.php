@@ -6,22 +6,28 @@ $db = 'esportify_sql';
 $dbuser = 'root';
 $dbpass = '';
 
-$mysqli = new mysqli($host, $dbuser, $dbpass, $db);
-if ($mysqli->connect_errno) {
-    $error = 'Erreur de connexion à la base de données: ' . $mysqli->connect_error;
-}
+$mongodbAvailable = class_exists('MongoDB\\Driver\\Manager');
 
-// Logout handler
-if (isset($_GET['logout'])) {
-    if (isset($_SESSION['user_id']) && $mysqli) {
-        $stmt = $mysqli->prepare("UPDATE utilisateurs SET status='not_connected' WHERE id=?");
-        if ($stmt) {
-            $stmt->bind_param('i', $_SESSION['user_id']);
-            $stmt->execute();
-            $stmt->close();
+if ($mongodbAvailable) {
+    try {
+        // Utilisation du driver bas-niveau MongoDB\Driver\Manager
+        $manager = new MongoDB\Driver\Manager('mongodb://127.0.0.1:27017');
+        $filter = [];
+        $options = ['sort' => ['date_debut' => 1]]; // tri par date_debut asc
+        $query = new MongoDB\Driver\Query($filter, $options);
+        $namespace = 'esportifyMongoDB.evenements';
+        $cursor = $manager->executeQuery($namespace, $query);
+        foreach ($cursor as $doc) {
+            $events[] = $doc;
         }
+    } catch (MongoDB\Driver\Exception\Exception $e) {
+        $events = [];
+        error_log('MongoDB Driver error: ' . $e->getMessage());
+    } catch (Exception $e) {
+        $events = [];
+        error_log('General error while reading MongoDB: ' . $e->getMessage());
     }
-    session_unset();
+} else {
     session_destroy();
     header('Location: menu.php');
     exit;
@@ -152,44 +158,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <tr>
                                 <th>#</th>
                                 <th>Titre</th>
-                                <th>Description</th>
                                 <th>Date de début</th>
                                 <th>Date de fin</th>
-                                <th>Nombre de joueurs</th>
-                                <th>Organisateur</th>
+                                <th>Nb joueurs</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
 
                         <tbody>
                         <?php
-                        // Récupère les événements visibles et le nom de l'organisateur
-                        $sql = "SELECT e.id, e.titre, e.description, e.date_debut, e.date_fin, e.nb_joueurs, u.username AS organisateur
-                                FROM evenements e
-                                LEFT JOIN utilisateurs u ON e.organisateur_id = u.id
-                                WHERE e.visibilite = 'visible'
-                                ORDER BY e.date_debut ASC";
+                        // Assure que $events est défini et est un tableau
+                        if (!isset($events) || !is_array($events)) {
+                            $events = [];
+                        }
 
-                        if ($res = $mysqli->query($sql)) {
-                            if ($res->num_rows > 0) {
-                                while ($ev = $res->fetch_assoc()) {
-                                    $start = $ev['date_debut'] ? date('d/m/Y H:i', strtotime($ev['date_debut'])) : '';
-                                    $end = $ev['date_fin'] ? date('d/m/Y H:i', strtotime($ev['date_fin'])) : '';
-                                    echo '<tr>';
-                                    echo '<td>' . htmlspecialchars($ev['id']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($ev['titre']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($ev['description']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($start) . '</td>';
-                                    echo '<td>' . htmlspecialchars($end) . '</td>';
-                                    echo '<td>' . htmlspecialchars($ev['nb_joueurs']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($ev['organisateur'] ?? '') . '</td>';
-                                    echo '</tr>';
+                        // Helper pour formater les dates (supporte BSON UTCDateTime si présent)
+                        $formatDate = function ($val) {
+                            if (class_exists('MongoDB\\BSON\\UTCDateTime') && $val instanceof MongoDB\BSON\UTCDateTime) {
+                                return $val->toDateTime()->format('d/m/Y H:i');
+                            }
+                            if (is_string($val) && strtotime($val) !== false) {
+                                return date('d/m/Y H:i', strtotime($val));
+                            }
+                            if ($val instanceof DateTime) {
+                                return $val->format('d/m/Y H:i');
+                            }
+                            return (string) $val;
+                        };
+
+                        if (count($events) > 0) {
+                            foreach ($events as $ev) {
+                                // si $ev est un document MongoDB (objet), on lève en tableau
+                                if (is_object($ev)) {
+                                    $ev = (array) $ev;
                                 }
-                                $res->free();
-                            } else {
-                                echo '<tr><td colspan="7">Aucun événement trouvé.</td></tr>';
+
+                                $event_id = $ev['event_id'] ?? ($ev['_id'] ?? '');
+                                // Si l'_id est un objet BSON, on essaye de le caster en string
+                                if (is_object($event_id) && method_exists($event_id, '__toString')) {
+                                    $event_id = (string) $event_id;
+                                }
+
+                                $titre = $ev['titre'] ?? '';
+                                $start = isset($ev['date_debut']) ? $formatDate($ev['date_debut']) : '';
+                                $end = isset($ev['date_fin']) ? $formatDate($ev['date_fin']) : '';
+                                $nb = $ev['nb_joueurs'] ?? '';
+
+                                echo '<tr>';
+                                echo '<td>' . htmlspecialchars($event_id) . '</td>';
+                                echo '<td>' . htmlspecialchars($titre) . '</td>';
+                                echo '<td>' . htmlspecialchars($start) . '</td>';
+                                echo '<td>' . htmlspecialchars($end) . '</td>';
+                                echo '<td>' . htmlspecialchars($nb) . '</td>';
+                                echo '<td>' . '</td>';
+                                echo '</tr>';
                             }
                         } else {
-                            echo '<tr><td colspan="7">Erreur lors de la lecture des événements.</td></tr>';
+                            echo '<tr><td colspan="6">Aucun événement trouvé.</td></tr>';
                         }
                         ?>
                         </tbody>

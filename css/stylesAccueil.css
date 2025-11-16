@@ -318,3 +318,21 @@ main {
     opacity: 1;
 }
 
+/* Badge de connexion (copié depuis stylesMenu.css) */
+.nav-login-badge {
+    max-width: 220px;
+    position:relative;
+    margin: -64px auto 0px auto;
+    background: #0056ff; /* badge background color */
+    color: orange; /* text color */
+    padding: 6px 10px;
+    border-radius: 6px;
+    z-index: 1050;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    font-size: 0.95rem;
+}
+.nav-login-badge a { color: #fff; text-decoration: underline; margin-left:8px; }
+.nav-login-badge .login-user { font-weight: 700; }
+.nav-login-badge .login-role { font-size: 0.85rem; margin-top: 4px; opacity: 0.95; }
+.nav-login-badge .login-logout { margin-top: 6px; font-size: 0.85rem; }
+
