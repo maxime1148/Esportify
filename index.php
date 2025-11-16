@@ -67,23 +67,40 @@ if (!$db_error) {
     <body>
         <div class="container">
             <section id="menu">
-                <div class="row">
-                    <nav class="col-12 menu-bar">
-                        <div class="menu-item">
-                            <a href="menu.php" class="menu-button">Menu</a>
-                            <span class="menu-icon-mobile"><a href="menu.php" class="menu-icon-mobile">&#9776;</a></span> <!-- Icône pour smartphone -->
-                        </div>
-                        <div class="menu-title">
-                            <h1><em>Accueil</em></h1>
-                        </div>
-                        <div class="menu-logo">
-                            
+                <div class="menu-bar">
+                    <div class="row">
+                            <div class="menu-title">
+                                <h1><em>Esportify - Accueil</em></h1>
+                            </div>
+                            <div class="menu-logo">
                                 <img src="images/logo-jeu.png" alt="Icône" class="menu-icon">
                                 <span class="menu-text">Esportify</span>
-                        
-                        </div>
-                    </nav>
+                            </div>
+                    </div>
+                    <br>
+                    <div class="row">
+                        <nav class="row" style="position:relative;">
+                            <div class="col-6 menu-item">
+                                <a href="menu.php" class="home-button">
+                                    <span class="menu-home-icon"><i class="bi bi-house-door-fill"></i></span> Menu
+                                </a>
+                                <span class="menu-icon-mobile">
+                                    <a href="mmenu.php" class="menu-icon-mobile">&#8962;</a>
+                                </span>
+                            </div>
+                            
+                            
+                            <?php if (!empty($_SESSION['username'])): ?>
+                                <div class="nav-login-badge">
+                                    <div class="login-user"><?php echo htmlspecialchars($_SESSION['username']); ?> est connecté -</div>
+                                    <div class="login-role">statut : <?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?></div>
+                                    <div class="login-logout"><a href="menu.php?logout=1">Se déconnecter</a></div>
+                                </div>
+                            <?php endif; ?>
+                        </nav>
+                    </div>
                 </div>
+            
             </section>
 
             
@@ -114,7 +131,7 @@ if (!$db_error) {
 
                 <!-- Section "événements en cours" et "événements à venir" -->
                 <div class="row">
-                    <p class="current-events"><span class="events-icon">&#128197;</span> Événements en cours</p>
+                    <p class="current-events"><span class="events-icon">&#128197;</span> Événements en cours :</p>
                     <?php if ($ongoing && $ongoing->num_rows > 0): ?>
                         <table class="table table-bordered table-striped">
                             <thead>
@@ -149,7 +166,7 @@ if (!$db_error) {
                 
                 </div>
                 <div class="row">
-                        <p class="upcoming-events"><span class="events-icon">&#128197;</span> Événements à venir</p>
+                        <p class="upcoming-events"><span class="events-icon">&#128197;</span> Événements à venir :</p>
                         <?php if ($upcoming && $upcoming->num_rows > 0): ?>
                         <table class="table table-bordered table-striped">
                             <thead>

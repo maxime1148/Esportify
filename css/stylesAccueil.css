@@ -55,18 +55,34 @@
 
 
 
+/* Barre de menu */
 .menu-bar {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column; /* Empile la ligne titre au-dessus de la ligne de navigation */
+    align-items: stretch;
+    position: relative; /* Conserve le contexte pour le logo positionné absolument */
     background: linear-gradient(to bottom, #000000, #434343); /* Dégradé noir */
-    padding: 10px 20px;
-    border-bottom: 3px solid orange;
+    padding: 12px 20px 8px 20px;
+    border-bottom: 4px solid orange;
 }
 
 .menu-item, .menu-title, .menu-logo {
     display: flex;
     align-items: center;
+}
+
+.home-button{
+    background-color: #0056ff;
+    color: orange;
+    border: 2px solid orange;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    margin-right: auto;
 }
 
 .menu-button {
@@ -79,7 +95,8 @@
     font-weight: bold;
     cursor: pointer;
     text-align: center;
-    text-decoration: none; /* Pas de soulignement */
+    text-decoration: none;
+    margin-left: auto;
 }
 
 .menu-button:hover {
@@ -87,15 +104,26 @@
         color: black;
 }
 
+
+
+.menu-title {
+    flex: 1; /* Permet au titre d'occuper l'espace central */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .menu-title h1 {
     color: orange;
     font-size: 24px;
     font-family: 'Calibri', sans-serif;
-    margin: 0;
+    margin: 0 20px;
+    text-align: center;
 }
 
 .menu-logo {
     display: flex;
+    max-width: 150px;
     align-items: center;
     background-color: #0056ff;
     color: orange;
@@ -104,7 +132,15 @@
     padding: 10px 20px;
     font-size: 16px;
     font-weight: bold;
+    position: absolute; /* Place le bloc en haut à droite */
+    right: 20px;
+    top: 12px;
 }
+
+.home-button:hover {
+        background-color: orange;
+        color: #0056ff;
+ }
 
 .menu-logo:hover {
         background-color: #0056ff;

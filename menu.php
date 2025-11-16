@@ -101,33 +101,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     
         <section id="menu">
-            <div class="row">
-                <nav class="col-12 menu-bar" style="position:relative;">
-                    <div class="menu-item">
-                        <a href="index.php" class="menu-button">
-                            <span class="menu-home-icon"><i class="bi bi-house-door-fill"></i></span> Accueil
-                        </a>
-                        <span class="menu-icon-mobile">
-                            <a href="index.php" class="menu-icon-mobile">&#8962;</a>
-                        </span>
-                    </div>
-                    <div class="menu-title">
-                        <h1><em>Menu</em></h1>
-                    </div>
-                    <div class="menu-logo">
-                        <img src="images/logo-jeu.png" alt="Icône" class="menu-icon">
-                        <span class="menu-text">Esportify</span>
-                    </div>
-                    <?php if (!empty($_SESSION['username'])): ?>
-                        <div class="nav-login-badge">Connecté en tant que <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong> — <a href="menu.php?logout=1">Se déconnecter</a></div>
-                    <?php endif; ?>
-                </nav>
+            <div class="menu-bar">
+                <div class="row">
+                        <div class="menu-title">
+                            <h1><em>Esportify - Menu</em></h1>
+                        </div>
+                        <div class="menu-logo">
+                            <img src="images/logo-jeu.png" alt="Icône" class="menu-icon">
+                            <span class="menu-text">Esportify</span>
+                        </div>
+                </div>
+                <br>
+                <div class="row">
+                    <nav class="row" style="position:relative;">
+                        <div class="col-6 menu-item">
+                            <a href="index.php" class="home-button">
+                                <span class="menu-home-icon"><i class="bi bi-house-door-fill"></i></span> Accueil
+                            </a>
+                            <span class="menu-icon-mobile">
+                                <a href="index.php" class="menu-icon-mobile">&#8962;</a>
+                            </span>
+                        </div>
+                        <div class="col-6 menu-item">
+                                <a href="evenements.php" class="menu-button">Événements</a>
+                                <span class="menu-icon-mobile"><a href="evenements.php" class="menu-icon-mobile">&#9776;</a></span> <!-- Icône pour smartphone -->
+                        </div>
+                        
+                        <?php if (!empty($_SESSION['username'])): ?>
+                            <div class="nav-login-badge">
+                                <div class="login-user"><?php echo htmlspecialchars($_SESSION['username']); ?> est connecté -</div>
+                                <div class="login-role">statut : <?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?></div>
+                                <div class="login-logout"><a href="menu.php?logout=1">Se déconnecter</a></div>
+                            </div>
+                        <?php endif; ?>
+                    </nav>
+                </div>
             </div>
             
         </section>
 
         <section id="contenu">
-            <section class="menu-main login-section" style="<?php echo empty(
+            <div class="menu-main login-section" style="<?php echo empty(
                 
                 $_SESSION['username']) ? 'display:flex;' : 'display:none;'; ?>" id="login-connexion">
                 <div class="row login-box">
@@ -155,58 +169,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <!-- login status shown in the navigation bar -->
                 </div>
-            </section>
+            </div>
             <div class="row">
                 
-                    <table class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Titre</th>
-                                <th>Description</th>
-                                <th>Date de début</th>
-                                <th>Date de fin</th>
-                                <th>Nombre de joueurs</th>
-                                <th>Organisateur</th>
-                            </tr>
-                        </thead>
+                <a class="events-access-box" href="evenements.php"><span>&#128197; Accès aux événements</span></a>
+                
 
-                        <tbody>
-                        <?php
-                        // Récupère les événements visibles et le nom de l'organisateur
-                        $sql = "SELECT e.id, e.titre, e.description, e.date_debut, e.date_fin, e.nb_joueurs, u.username AS organisateur
-                                FROM evenements e
-                                LEFT JOIN utilisateurs u ON e.organisateur_id = u.id
-                                WHERE e.visibilite = 'visible'
-                                ORDER BY e.date_debut ASC";
-
-                        if ($res = $mysqli->query($sql)) {
-                            if ($res->num_rows > 0) {
-                                while ($ev = $res->fetch_assoc()) {
-                                    $start = $ev['date_debut'] ? date('d/m/Y H:i', strtotime($ev['date_debut'])) : '';
-                                    $end = $ev['date_fin'] ? date('d/m/Y H:i', strtotime($ev['date_fin'])) : '';
-                                    echo '<tr>';
-                                    echo '<td>' . htmlspecialchars($ev['id']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($ev['titre']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($ev['description']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($start) . '</td>';
-                                    echo '<td>' . htmlspecialchars($end) . '</td>';
-                                    echo '<td>' . htmlspecialchars($ev['nb_joueurs']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($ev['organisateur'] ?? '') . '</td>';
-                                    echo '</tr>';
-                                }
-                                $res->free();
-                            } else {
-                                echo '<tr><td colspan="7">Aucun événement trouvé.</td></tr>';
-                            }
-                        } else {
-                            echo '<tr><td colspan="7">Erreur lors de la lecture des événements.</td></tr>';
-                        }
-                        ?>
-                        </tbody>
-                    </table>
-               
             </div>
+            <br>
+            <br>
+            
             <section class="row contact-section">
                 <div class="contact-box">
                     <span class="contact-title">Contact</span>

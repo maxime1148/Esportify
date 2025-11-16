@@ -12,17 +12,33 @@ body {
 /* Barre de menu */
 .menu-bar {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column; /* Empile la ligne titre au-dessus de la ligne de navigation */
+    align-items: stretch;
+    position: relative; /* Conserve le contexte pour le logo positionné absolument */
     background: linear-gradient(to bottom, #000000, #434343); /* Dégradé noir */
-    padding: 10px 20px;
-    border-bottom: 3px solid orange;
+    padding: 12px 20px 8px 20px;
+    border-bottom: 4px solid orange;
 }
 
 .menu-item, .menu-title, .menu-logo {
     display: flex;
     align-items: center;
 }
+
+.home-button{
+    background-color: #0056ff;
+    color: orange;
+    border: 2px solid orange;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    margin-right: auto;
+}
+
 
 .menu-button {
     background-color: #0056ff;
@@ -35,12 +51,17 @@ body {
     cursor: pointer;
     text-align: center;
     text-decoration: none;
-    margin-right: 15px;
+    margin-left: auto;
+}
+
+.home-button:hover {
+    background-color: orange;
+    color: #0056ff;
 }
 
 .menu-button:hover {
     background-color: orange;
-    color: black;
+    color: #0056ff;
 }
 
 .menu-home-icon {
@@ -53,15 +74,24 @@ body {
     display: none;
 }
 
+.menu-title {
+    flex: 1; /* Permet au titre d'occuper l'espace central */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .menu-title h1 {
     color: orange;
     font-size: 24px;
     font-family: 'Calibri', sans-serif;
     margin: 0 20px;
+    text-align: center;
 }
 
 .menu-logo {
     display: flex;
+    max-width: 150px;
     align-items: center;
     background-color: #0056ff;
     color: orange;
@@ -70,6 +100,9 @@ body {
     padding: 10px 20px;
     font-size: 16px;
     font-weight: bold;
+    position: absolute; /* Place le bloc en haut à droite */
+    right: 20px;
+    top: 12px;
 }
 
 .menu-logo .menu-icon {
@@ -79,9 +112,28 @@ body {
 }
 
 .menu-logo .menu-text {
-    font-size: 1.5rem;
+    font-size: 1.0rem;
     font-weight: bold;
     color: orange;
+}
+
+/* Navigation (ligne sous le titre) : boutons à gauche et à droite */
+.menu-bar > .row:nth-child(2) nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding-top: 8px;
+}
+
+.menu-bar > .row:nth-child(2) nav .menu-item:first-child {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.menu-bar > .row:nth-child(2) nav .menu-item:last-child {
+    display: flex;
+    justify-content: flex-end;
 }
 
 /* Section principale */
@@ -230,6 +282,23 @@ body {
     color: #007bff;
 }
 
+.events-access-box {
+    background: #666;
+    text-decoration: none;
+    margin: auto;
+    color: #fff;
+    padding: 18px 28px;
+    border: 2px solid #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    max-width: 300px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
 .nav-login-badge {
     position: absolute;
     top: 8px;
@@ -243,6 +312,10 @@ body {
     font-size: 0.95rem;
 }
 .nav-login-badge a { color: #fff; text-decoration: underline; margin-left:8px; }
+/* Sub-elements for the login badge */
+.nav-login-badge .login-user { font-weight: 700; }
+.nav-login-badge .login-role { font-size: 0.85rem; margin-top: 4px; opacity: 0.95; }
+.nav-login-badge .login-logout { margin-top: 6px; font-size: 0.85rem; }
 
 /* Responsive */
 @media (max-width: 700px) {
