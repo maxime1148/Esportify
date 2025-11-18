@@ -280,10 +280,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 
             <div class="row">
-                
                 <a class="events-access-box" href="evenements.php"><span>&#128197; Accès aux événements</span></a>
-                
-
+            </div>
+            <br>
+            <br>
+            <div class="row">
+<?php
+// Affiche le lien de gestion des utilisateurs seulement pour les administrateurs
+$role = isset($_SESSION['role']) ? strtolower(trim($_SESSION['role'])) : '';
+if (in_array($role, ['admin', 'administrateur', 'administrator'], true)):
+?>
+                <a class="events-access-box" href="users_list.php">Gestion des utilisateurs</a>
+<?php endif; ?>
             </div>
             <br>
             <br>

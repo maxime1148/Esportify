@@ -282,6 +282,27 @@ body {
     color: #007bff;
 }
 
+.return-box {
+    background: #0056ff;
+    text-decoration: none;
+    margin-left: 0px;
+    color: orange;
+    padding: 18px 28px;
+    border: 2px solid orange;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    max-width: 150px;
+    justify-content: center;
+    
+    gap: 10px;
+    font-weight: bold;
+}
+
+.return-box:hover {
+    background-color: orange;
+    color: #0056ff;
+}
+
 .events-access-box {
     background: #666;
     text-decoration: none;
