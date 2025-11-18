@@ -156,11 +156,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
-                                <th>#</th>
                                 <th>Titre</th>
                                 <th>Date de début</th>
                                 <th>Date de fin</th>
-                                <th>Nb joueurs</th>
+                                <th>Joueurs</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -193,11 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $ev = (array) $ev;
                                 }
 
-                                $event_id = $ev['event_id'] ?? ($ev['_id'] ?? '');
-                                // Si l'_id est un objet BSON, on essaye de le caster en string
-                                if (is_object($event_id) && method_exists($event_id, '__toString')) {
-                                    $event_id = (string) $event_id;
-                                }
+                                // Prépare les données de la ligne
 
                                 $titre = $ev['titre'] ?? '';
                                 $start = isset($ev['date_debut']) ? $formatDate($ev['date_debut']) : '';
@@ -205,16 +200,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $nb = $ev['nb_joueurs'] ?? '';
 
                                 echo '<tr>';
-                                echo '<td>' . htmlspecialchars($event_id) . '</td>';
                                 echo '<td>' . htmlspecialchars($titre) . '</td>';
                                 echo '<td>' . htmlspecialchars($start) . '</td>';
                                 echo '<td>' . htmlspecialchars($end) . '</td>';
                                 echo '<td>' . htmlspecialchars($nb) . '</td>';
-                                echo '<td>' . '</td>';
+                                echo '<td width="340">';
+                                echo '<a class="btn btn-secondary" href="view.php?id=' . rawurlencode((is_object($ev['_id']) && method_exists($ev['_id'], '__toString')) ? (string)$ev['_id'] : ($ev['_id'] ?? $ev['event_id'] ?? '')) . '"><span class="bi-eye"></span> Voir</a>';
+                                echo ' ';
+                                echo '<a style="display: none;" class="btn btn-primary" href="#"><span class="bi-pencil"></span> Modifier</a>';
+                                echo ' ';
+                                echo '<a style="display: none;" class="btn btn-danger" href="#"><span class="bi-x"></span> Supprimer</a>';
+                                echo '</td>';
                                 echo '</tr>';
                             }
                         } else {
-                            echo '<tr><td colspan="6">Aucun événement trouvé.</td></tr>';
+                            echo '<tr><td colspan="5">Aucun événement trouvé.</td></tr>';
                         }
                         ?>
                         </tbody>

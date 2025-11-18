@@ -201,7 +201,7 @@ if ($mongodbAvailable) {
                                     <th>Titre</th>
                                     <th>Date de début</th>
                                     <th>Date de fin</th>
-                                    <th>Nombre de joueurs</th>
+                                    <th>Joueurs</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -255,7 +255,7 @@ if ($mongodbAvailable) {
                                 <th>Titre</th>
                                 <th>Date de début</th>
                                 <th>Date de fin</th>
-                                <th>Nombre de joueurs</th>
+                                <th>Joueurs</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
