@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-$host = '127.0.0.1';
+$host = 'erxv1bzckceve5lh.cbetxkdyhwsb.us-east-1.rds.amazonaws.com';
 $db = 'esportify_sql';
 $dbuser = 'root';
 $dbpass = '';
