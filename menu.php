@@ -1,10 +1,10 @@
 ﻿<?php
 session_start();
 
-$host = '127.0.0.1';
-$db = 'esportify_sql';
-$dbuser = 'root';
-$dbpass = '';
+$host = 'erxv1bzckceve5lh.cbetxkdyhwsb.us-east-1.rds.amazonaws.com';
+$db = 'zghm67erntjc1fv1';
+$dbuser = 'hxwvxrhk7b1h4vdl';
+$dbpass = 'enpr39qjhrz8ojjd';
 
 $mysqli = new mysqli($host, $dbuser, $dbpass, $db);
 if ($mysqli->connect_errno) {
