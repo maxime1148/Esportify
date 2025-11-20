@@ -7,6 +7,66 @@ $dbuser = 'root';
 $dbpass = '';
 
 $mongodbAvailable = class_exists('MongoDB\\Driver\\Manager');
+// Helper: session / role
+$allowed_roles = ['organisateur','administrateur','admin','administrator'];
+$user_role = strtolower(trim($_SESSION['role'] ?? ''));
+$user_logged = !empty($_SESSION['username']);
+
+// Handler de suppression d'événement via POST (action=delete_event)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_event') {
+    $del_id = trim($_POST['event_id'] ?? '');
+    $message = '';
+    if ($del_id === '') {
+        $message = 'Identifiant d\'événement manquant.';
+    } elseif (!$mongodbAvailable) {
+        $message = 'MongoDB non disponible.';
+    } else {
+        try {
+            $mgr = new MongoDB\Driver\Manager('mongodb://127.0.0.1:27017');
+            // normalise le filtre pour retrouver le document
+            if (preg_match('/^[a-f\\d]{24}$/i', $del_id)) {
+                try {
+                    $filter = ['_id' => new MongoDB\BSON\ObjectId($del_id)];
+                } catch (Exception $e) {
+                    $filter = ['_id' => $del_id];
+                }
+            } else {
+                $filter = ['_id' => $del_id];
+            }
+
+            $q = new MongoDB\Driver\Query($filter, ['limit' => 1]);
+            $cursor = $mgr->executeQuery('esportifyMongoDB.evenements', $q);
+            $found = null;
+            foreach ($cursor as $d) { $found = $d; break; }
+
+            // Vérifie les permissions : admin OU organisateur de l'événement
+            $role = strtolower($_SESSION['role'] ?? '');
+            $username = $_SESSION['username'] ?? '';
+            $user_id = $_SESSION['user_id'] ?? '';
+            // admin roles accepted
+            $allowed = in_array($role, ['administrateur','organisateur'], true);
+
+            
+
+            if (!$allowed) {
+                $message = 'Permission refusée pour supprimer cet événement.';
+            } else {
+                $bulk = new MongoDB\Driver\BulkWrite();
+                if (preg_match('/^[a-f\\d]{24}$/i', $del_id)) {
+                    $bulk->delete(['_id' => new MongoDB\BSON\ObjectId($del_id)], ['limit' => 1]);
+                } else {
+                    $bulk->delete(['_id' => $del_id], ['limit' => 1]);
+                }
+                $res = $mgr->executeBulkWrite('esportifyMongoDB.evenements', $bulk);
+                // redirect pour recharger la liste
+                header('Location: evenements.php');
+                exit;
+            }
+        } catch (Exception $e) {
+            $message = 'Erreur lors de la suppression : ' . $e->getMessage();
+        }
+    }
+}
 
 if ($mongodbAvailable) {
     try {
@@ -33,7 +93,7 @@ if ($mongodbAvailable) {
     exit;
 }
 
-$message = '';
+if (!isset($message)) { $message = ''; }
 // Login handler
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
@@ -151,8 +211,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             <br>
             <br>
+
+            <?php if ($user_logged && in_array($user_role, $allowed_roles, true)): ?>
+            <a href="insert.php" class="btn btn-success btn-lg"><span class="bi-plus"></span> Créer un événement</a>
+            <?php endif; ?>
+
+            <br>
+            <br>
+
             <div class="row">
-                
+                <?php if (!empty($message)): ?>
+                    <div class="col-12"><div class="alert alert-info"><?php echo htmlspecialchars($message); ?></div></div>
+                <?php endif; ?>
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
@@ -174,12 +244,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         // Helper pour formater les dates (supporte BSON UTCDateTime si présent)
                         $formatDate = function ($val) {
                             if (class_exists('MongoDB\\BSON\\UTCDateTime') && $val instanceof MongoDB\BSON\UTCDateTime) {
-                                return $val->toDateTime()->format('d/m/Y H:i');
+                                $dt = $val->toDateTime();
+                                // afficher en timezone serveur (ou config)
+                                $dt->setTimezone(new DateTimeZone(date_default_timezone_get()));
+                                return $dt->format('d/m/Y H:i');
                             }
                             if (is_string($val) && strtotime($val) !== false) {
                                 return date('d/m/Y H:i', strtotime($val));
                             }
                             if ($val instanceof DateTime) {
+                                $val->setTimezone(new DateTimeZone(date_default_timezone_get()));
                                 return $val->format('d/m/Y H:i');
                             }
                             return (string) $val;
@@ -204,13 +278,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 echo '<td>' . htmlspecialchars($start) . '</td>';
                                 echo '<td>' . htmlspecialchars($end) . '</td>';
                                 echo '<td>' . htmlspecialchars($nb) . '</td>';
-                                echo '<td width="340">';
-                                echo '<a class="btn btn-secondary" href="view.php?id=' . rawurlencode((is_object($ev['_id']) && method_exists($ev['_id'], '__toString')) ? (string)$ev['_id'] : ($ev['_id'] ?? $ev['event_id'] ?? '')) . '"><span class="bi-eye"></span> Voir</a>';
-                                echo ' ';
-                                echo '<a style="display: none;" class="btn btn-primary" href="#"><span class="bi-pencil"></span> Modifier</a>';
-                                echo ' ';
-                                echo '<a style="display: none;" class="btn btn-danger" href="#"><span class="bi-x"></span> Supprimer</a>';
-                                echo '</td>';
+                                                    echo '<td width="340">';
+                                                    $eid = (is_object($ev['_id']) && method_exists($ev['_id'], '__toString')) ? (string)$ev['_id'] : ($ev['_id'] ?? $ev['event_id'] ?? '');
+                                                    echo '<a class="btn btn-secondary" href="view.php?id=' . rawurlencode($eid) . '"><span class="bi-eye"></span> Voir</a>';
+                                                    echo ' ';
+                                                    // Montrer le bouton Modifier seulement aux rôles autorisés (organisateur/admin) et utilisateur connecté
+                                                    if ($user_logged && in_array($user_role, $allowed_roles, true)) {
+                                                        echo '<a class="btn btn-primary" href="update.php?id=' . rawurlencode($eid) . '"><span class="bi-pencil"></span> Modifier</a>';
+                                                        echo ' ';
+                                                    }
+                                                    echo ' ';
+                                                    // détermine si l'utilisateur peut supprimer : admin ou organisateur
+                                                    $role = strtolower($_SESSION['role'] ?? '');
+                                                    $username = $_SESSION['username'] ?? '';
+                                                    $user_id = $_SESSION['user_id'] ?? '';
+                                                    // normalisation souple de champs organisateur
+                                                    $normSingle = function($v) {
+                                                        if (is_object($v) && method_exists($v, '__toString')) return (string)$v;
+                                                        if (is_array($v)) {
+                                                            if (isset($v['$oid'])) return (string)$v['$oid'];
+                                                            if (isset($v['oid'])) return (string)$v['oid'];
+                                                            if (isset($v['username'])) return (string)$v['username'];
+                                                            if (isset($v['name'])) return (string)$v['name'];
+                                                            return '';
+                                                        }
+                                                        if (is_scalar($v)) return (string)$v;
+                                                        return '';
+                                                    };
+
+                                                    $orgName = '';
+                                                    foreach (['organisateur','organizer','organisateur_name','organizer_name','organisateur_username','creator','created_by','owner'] as $f) {
+                                                        if (isset($ev[$f]) && $ev[$f] !== null) { $orgName = $normSingle($ev[$f]); if ($orgName !== '') break; }
+                                                    }
+
+                                                    $orgId = '';
+                                                    foreach (['organisateur_id','organizer_id','user_id','creator_id','created_by_id','owner_id','_id'] as $f) {
+                                                        if (isset($ev[$f]) && $ev[$f] !== null) { $orgId = $normSingle($ev[$f]); if ($orgId !== '') break; }
+                                                    }
+
+                                                    $canDelete = false;
+                                                    if (in_array($role, ['administrateur','organisateur'], true)) { $canDelete = true; }
+                                                    if ($orgName !== '' && strtolower($orgName) === strtolower($username)) { $canDelete = true; }
+                                                    if ($orgId !== '' && (string)$orgId === (string)$user_id) { $canDelete = true; }
+                                                    if ($canDelete) {
+                                                        echo '<form method="post" style="display:inline;" onsubmit="return confirm(\'Confirmer la suppression de cet événement ?\');">';
+                                                        echo '<input type="hidden" name="action" value="delete_event">';
+                                                        echo '<input type="hidden" name="event_id" value="' . htmlspecialchars($eid) . '">';
+                                                        echo '<button type="submit" class="btn btn-danger"><span class="bi-x"></span> Supprimer</button>';
+                                                        echo '</form>';
+                                                    }
+                                                    echo '</td>';
                                 echo '</tr>';
                             }
                         } else {

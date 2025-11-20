@@ -158,12 +158,15 @@ if (!empty($events) && isset($events[0])) {
 }
 $formatDate = function ($val) {
     if (class_exists('MongoDB\\BSON\\UTCDateTime') && $val instanceof MongoDB\BSON\UTCDateTime) {
-        return $val->toDateTime()->format('d/m/Y H:i');
+        $dt = $val->toDateTime();
+        $dt->setTimezone(new DateTimeZone(date_default_timezone_get()));
+        return $dt->format('d/m/Y H:i');
     }
     if (is_string($val) && strtotime($val) !== false) {
         return date('d/m/Y H:i', strtotime($val));
     }
     if ($val instanceof DateTime) {
+        $val->setTimezone(new DateTimeZone(date_default_timezone_get()));
         return $val->format('d/m/Y H:i');
     }
     return (string) $val;

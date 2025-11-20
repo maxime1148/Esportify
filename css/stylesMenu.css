@@ -282,6 +282,19 @@ body {
     color: #007bff;
 }
 
+.form-group {
+    background: #666;
+    color: #fff;
+    padding: 18px 28px;
+    border: 2px solid #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    min-width: 220px;
+    margin-bottom: 16px;
+    
+    align-items: center;
+}
+
 .return-box {
     background: #0056ff;
     text-decoration: none;
@@ -301,6 +314,19 @@ body {
 .return-box:hover {
     background-color: orange;
     color: #0056ff;
+}
+
+.user-box {
+    background: #666;
+    color: #fff;
+    padding: 18px 28px;
+    border: 2px solid #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    min-width: 220px;
+    margin-bottom: 16px;
+    
+    align-items: center;
 }
 
 .events-access-box {

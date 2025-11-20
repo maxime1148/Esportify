@@ -237,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <section id="contenu">
                        
             <div class="row">
-                <a class="return-box" href="menu.php"> Retour</a>
+                <a class="return-box" href="users_list.php"> Retour</a>
             </div>
             <br>
             <br>
@@ -248,54 +248,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $role = isset($_SESSION['role']) ? strtolower(trim($_SESSION['role'])) : '';
 if (in_array($role, ['admin', 'administrateur', 'administrator'], true)):
 ?>
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Nom d'utilisateur</th>
-                            <th>Rôle</th>
-                            <th>Statut</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                    <?php
-                    // Récupère tous les utilisateurs
-                    $users = [];
-                    if ($mysqli) {
-                        $res = $mysqli->query('SELECT id, username, role, status FROM utilisateurs ORDER BY id ASC');
-                        if ($res) {
-                            while ($row = $res->fetch_assoc()) {
-                                $users[] = $row;
+                <h2 style="color:orange">Modifier le rôle d'un utilisateur</h2>
+                <?php
+                    // Prefill username from querystring if provided (clicked from users_list)
+                    $prefill_username = '';
+                    if (!empty($_GET['username'])) {
+                        $prefill_username = $_GET['username'];
+                    } elseif (!empty($_GET['id'])) {
+                        // optional: if id is provided, try to look up username
+                        if ($mysqli) {
+                            $stmt = $mysqli->prepare('SELECT username FROM utilisateurs WHERE id = ? LIMIT 1');
+                            if ($stmt) {
+                                $stmt->bind_param('i', $_GET['id']);
+                                $stmt->execute();
+                                $res = $stmt->get_result();
+                                if ($row = $res->fetch_assoc()) {
+                                    $prefill_username = $row['username'];
+                                }
+                                $stmt->close();
                             }
-                            $res->free();
                         }
                     }
-
-                    if (count($users) > 0) {
-                        foreach ($users as $u) {
-                            echo '<tr>';
-                            echo '<td>' . htmlspecialchars($u['username']) . '</td>';
-                            echo '<td>' . htmlspecialchars($u['role']) . '</td>';
-                            echo '<td>' . htmlspecialchars($u['status']) . '</td>';
-                            echo '<td width="300">';
-                            echo '<form method="post" style="display:inline;" onsubmit="return confirm(\'Confirmer la suppression de ' . addslashes(htmlspecialchars($u['username'])) . '?\');">';
-                            echo '<input type="hidden" name="action" value="delete_user">';
-                            echo '<input type="hidden" name="user_id" value="' . intval($u['id']) . '">';
-                            // link to users_update.php with username in querystring to prefill the form
-                            $usernameParam = rawurlencode($u['username']);
-                            echo '<a class="btn btn-primary" href="users_update.php?username=' . $usernameParam . '"><span class="bi-pencil"></span> Modifier rôle</a>';
-                            echo '<button type="submit" class="btn btn-danger"><span class="bi-x"></span> Supprimer</button>';
-                            echo '</form>';
-                            echo '</td>';
-                            echo '</tr>';
-                        }
-                    } else {
-                        echo '<tr><td colspan="4">Aucun utilisateur trouvé.</td></tr>';
-                    }
-                    ?>
-                    </tbody>
-                </table>
+                ?>
+                <form class="user-box" method="post" action="users_update_handler.php">
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">Nom de l'utilisateur :</label>
+                        <br>
+                        <p style="color: orange;"><?php echo htmlspecialchars($prefill_username); ?></p>
+                        <input type="hidden" name="username" value="<?php echo htmlspecialchars($prefill_username); ?>">
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_role" class="form-label">Nouveau rôle :</label>
+                        <select class="form-select" id="new_role" name="new_role" required>
+                            <option value="joueur">Joueur</option>
+                            <option value="organisateur">Organisateur</option>
+                            <option value="administrateur">Administrateur</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Mettre à jour le rôle</button>
+                </form>
 <?php else: ?>
                 <div class="alert alert-warning">Accès réservé aux administrateurs.</div>
 <?php endif; ?>

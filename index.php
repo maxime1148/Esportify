@@ -197,12 +197,10 @@ if ($mongodbAvailable) {
                         <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
-                                    <th>#</th>
                                     <th>Titre</th>
                                     <th>Date de début</th>
                                     <th>Date de fin</th>
                                     <th>Joueurs</th>
-                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -229,12 +227,10 @@ if ($mongodbAvailable) {
                                         $nb = $ev['nb_joueurs'] ?? '';
 
                                         echo '<tr>';
-                                        echo '<td>' . htmlspecialchars($event_id) . '</td>';
                                         echo '<td>' . htmlspecialchars($titre) . '</td>';
                                         echo '<td>' . htmlspecialchars($start) . '</td>';
                                         echo '<td>' . htmlspecialchars($end) . '</td>';
                                         echo '<td>' . htmlspecialchars($nb) . '</td>';
-                                        echo '<td>' . '</td>';
                                         echo '</tr>';
                                     }
                                 } else {
@@ -251,12 +247,10 @@ if ($mongodbAvailable) {
                         <table class="table table-bordered table-striped">
                             <thead>
                             <tr>
-                                <th>#</th>
                                 <th>Titre</th>
                                 <th>Date de début</th>
                                 <th>Date de fin</th>
                                 <th>Joueurs</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                             <tbody>
@@ -283,12 +277,10 @@ if ($mongodbAvailable) {
                                         $nb = $ev['nb_joueurs'] ?? '';
 
                                         echo '<tr>';
-                                        echo '<td>' . htmlspecialchars($event_id) . '</td>';
                                         echo '<td>' . htmlspecialchars($titre) . '</td>';
                                         echo '<td>' . htmlspecialchars($start) . '</td>';
                                         echo '<td>' . htmlspecialchars($end) . '</td>';
                                         echo '<td>' . htmlspecialchars($nb) . '</td>';
-                                        echo '<td>' . '</td>';
                                         echo '</tr>';
                                     }
                                 } else {
