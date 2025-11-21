@@ -4,7 +4,8 @@
   "license": "proprietary",
   "require": {
     "php": "^8.0",
-    "mongodb/mongodb": "^1.14"
+    "mongodb/mongodb": "^1.14",
+    "ext-mongodb": "*"
   },
   "config": {
     "platform": {

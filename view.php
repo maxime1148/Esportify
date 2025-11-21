@@ -76,9 +76,10 @@ if ($mongodbAvailable) {
         error_log('General error while reading MongoDB: ' . $e->getMessage());
     }
 } else {
-    session_destroy();
-    header('Location: menu.php');
-    exit;
+    // Ne pas détruire la session ni rediriger silencieusement.
+    // Fournir un message d'erreur utile dans la page lorsque l'extension n'est pas disponible
+    $events = [];
+    $mongo_error_message = 'Le driver MongoDB (ext-mongodb) n\'est pas disponible sur ce serveur. Ajoutez "ext-mongodb" dans le champ "require" de `composer.json`, puis redeployez sur Heroku.';
 }
 
 ?>
@@ -148,6 +149,15 @@ if ($mongodbAvailable) {
         <br>
 
         <section class="row" id="contenu">
+
+            <?php if (!empty($mongo_error_message)): ?>
+                <div class="col-12">
+                    <div class="alert alert-warning" role="alert">
+                        <strong>Problème de configuration :</strong> <?php echo htmlspecialchars($mongo_error_message); ?>
+                        <br>Vérifiez les logs Heroku avec <code>heroku logs --tail</code> pour plus d'informations.
+                    </div>
+                </div>
+            <?php endif; ?>
 
 
             <div class="col-6">
