@@ -1,13 +1,14 @@
 {
-  "name": "esportify",
-  "description": "Mon site PHP utilisant MongoDB",
+  "name": "maxime/esportify",
+  "description": "Mon-site-PHP-utilisant-MongoDB",
+  "license": "proprietary",
   "require": {
     "php": "^8.0",
     "mongodb/mongodb": "^1.14"
   },
   "config": {
     "platform": {
-      "ext-mongodb": "*"
+      "ext-mongodb": "1.17.0"
     }
   }
 }
