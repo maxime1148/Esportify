@@ -1,0 +1,13 @@
+{
+  "name": "esportify",
+  "description": "Mon site PHP utilisant MongoDB",
+  "require": {
+    "php": "^8.0",
+    "mongodb/mongodb": "^1.14"
+  },
+  "config": {
+    "platform": {
+      "ext-mongodb": "*"
+    }
+  }
+}
