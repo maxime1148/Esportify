@@ -22,7 +22,7 @@ $mongodbAvailable = class_exists('MongoDB\\Driver\\Manager');
 if ($mongodbAvailable) {
     try {
         // Utilisation du driver bas-niveau MongoDB\Driver\Manager
-        $manager = new MongoDB\Driver\Manager('mongodb://127.0.0.1:27017');
+        $manager = new MongoDB\Driver\Manager('mongodb+srv://maximecassignol11_db_user:pNjiHPWGMi3DfbV3@esportifymongodb.jymrecd.mongodb.net/?appName=esportifyMongoDB');
         $namespace = 'esportifyMongoDB.evenements';
         $events = [];
 
@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
 
     if (empty($errors)) {
         try {
-            $mgr = new MongoDB\Driver\Manager('mongodb+srv://maximecassignol11_db_user:pNjiHPWGMi3DfbV3@esportifymongodb.jymrecd.mongodb.net/');
+            $mgr = new MongoDB\Driver\Manager('mongodb+srv://maximecassignol11_db_user:pNjiHPWGMi3DfbV3@esportifymongodb.jymrecd.mongodb.net/?appName=esportifyMongoDB');
             $bulk = new MongoDB\Driver\BulkWrite();
 
             // convertit les dates en UTCDateTime si possible

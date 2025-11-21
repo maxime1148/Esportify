@@ -53,7 +53,7 @@ if ($mysqli) {
 $event = null;
 $id = isset($_GET['id']) ? trim($_GET['id']) : '';
 try {
-    $mgr = new MongoDB\Driver\Manager('mongodb+srv://maximecassignol11_db_user:pNjiHPWGMi3DfbV3@esportifymongodb.jymrecd.mongodb.net/');
+    $mgr = new MongoDB\Driver\Manager('mongodb+srv://maximecassignol11_db_user:pNjiHPWGMi3DfbV3@esportifymongodb.jymrecd.mongodb.net/?appName=esportifyMongoDB');
     $namespace = 'esportifyMongoDB.evenements';
     if ($id !== '') {
         // try ObjectId
@@ -168,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
 
         if (empty($errors)) {
             try {
-                $mgr = new MongoDB\Driver\Manager('mongodb://127.0.0.1:27017');
+                $mgr = new MongoDB\Driver\Manager('mongodb+srv://maximecassignol11_db_user:pNjiHPWGMi3DfbV3@esportifymongodb.jymrecd.mongodb.net/?appName=esportifyMongoDB');
                 $bulk = new MongoDB\Driver\BulkWrite();
                 // determine filter from posted id
                 $post_id = $_POST['event_id'] ?? '';

@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
         $message = 'MongoDB non disponible.';
     } else {
         try {
-            $mgr = new MongoDB\Driver\Manager('mongodb+srv://maximecassignol11_db_user:pNjiHPWGMi3DfbV3@esportifymongodb.jymrecd.mongodb.net/');
+            $mgr = new MongoDB\Driver\Manager('mongodb+srv://maximecassignol11_db_user:pNjiHPWGMi3DfbV3@esportifymongodb.jymrecd.mongodb.net/?appName=esportifyMongoDB');
             // normalise le filtre pour retrouver le document
             if (preg_match('/^[a-f\\d]{24}$/i', $del_id)) {
                 try {
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
 if ($mongodbAvailable) {
     try {
         // Utilisation du driver bas-niveau MongoDB\Driver\Manager
-        $manager = new MongoDB\Driver\Manager('mongodb://127.0.0.1:27017');
+        $manager = new MongoDB\Driver\Manager('mongodb+srv://maximecassignol11_db_user:pNjiHPWGMi3DfbV3@esportifymongodb.jymrecd.mongodb.net/?appName=esportifyMongoDB');
         $filter = [];
         $options = ['sort' => ['date_debut' => 1]]; // tri par date_debut asc
         $query = new MongoDB\Driver\Query($filter, $options);
