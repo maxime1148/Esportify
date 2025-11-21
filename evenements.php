@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
         $message = 'MongoDB non disponible.';
     } else {
         try {
-            $mgr = new MongoDB\Driver\Manager('mongodb://127.0.0.1:27017');
+            $mgr = new MongoDB\Driver\Manager('mongodb+srv://maximecassignol11_db_user:pNjiHPWGMi3DfbV3@esportifymongodb.jymrecd.mongodb.net/');
             // normalise le filtre pour retrouver le document
             if (preg_match('/^[a-f\\d]{24}$/i', $del_id)) {
                 try {

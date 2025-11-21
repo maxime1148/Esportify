@@ -53,7 +53,7 @@ if ($mysqli) {
 $event = null;
 $id = isset($_GET['id']) ? trim($_GET['id']) : '';
 try {
-    $mgr = new MongoDB\Driver\Manager('mongodb://127.0.0.1:27017');
+    $mgr = new MongoDB\Driver\Manager('mongodb+srv://maximecassignol11_db_user:pNjiHPWGMi3DfbV3@esportifymongodb.jymrecd.mongodb.net/');
     $namespace = 'esportifyMongoDB.evenements';
     if ($id !== '') {
         // try ObjectId
